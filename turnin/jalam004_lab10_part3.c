@@ -12,7 +12,7 @@
 #ifdef _SIMULATE_
 #include "simAVRHeader.h"
 #endif
-unsigned char T,L;
+unsigned char T,L,S;
 enum BL_States { BL_SMStart, LedOff, LedOn } BL_State;
 void TickFct_BlinkLed() 
 {
@@ -40,7 +40,42 @@ void TickFct_BlinkLed()
 	break;
 	}
 
-}	
+}
+enum S_States { start, Off, On } State;
+void Speaker() 
+{
+ unsigned char tmpA = ~PINA & 0x04;
+
+	switch(State)
+	{
+	case start: 
+	State = Off;
+	break;
+	case Off:
+	if((tmpA))	
+	State = On;
+	else{State = Off;}
+	break;
+	case On: 
+	if((tmpA))
+	State = Off;
+	else{State = On;}
+	break;
+	}
+	switch(State)
+	{
+	case start: 
+	break;
+	case Off: 
+	S = 0;
+	break;
+	case On: 
+	S = 0x10;
+	break;
+	}
+
+}
+	
 enum States { Start, Out} state;
 void Combine(){
 //unsigned char tmpB = 0x00;
@@ -56,7 +91,7 @@ void Combine(){
 	//state = Out;
 	break;
 	case Out:
-	PORTB = T | L;
+	PORTB = T | L | S;
 	}
 
 
@@ -100,18 +135,43 @@ void TickFct_ThreeLeds() {
 
 int main(void) {
 DDRB = 0xFF; PORTB = 0x00;
+DDRA = 0x00; PORTA = 0xFF;
 //   PORTB = 0; // Init outputs
-   TimerSet(1000);
+unsigned long BL_elapsedTime = 1000;
+ unsigned long S_elapsedTime = 2;
+  unsigned long TL_elapsedTime = 300;
+   //unsigned long N_elapsedTime = 1;
+ const unsigned long timerPeriod = 1; 
+     //unsigned char tmpA = ~PINA & 0x01;
+TimerSet(timerPeriod);
    TimerOn(); 
    BL_State = BL_SMStart;
    TL_State = TL_SMStart;
    state = Start; 
-   while (1) {          
-      TickFct_BlinkLed();    // Tick the BlinkLed synchSM
-      TickFct_ThreeLeds();
-      Combine();
-      //PORTB = tmpB;   // Tick the ThreeLeds synchSM
+   while (1) {      
+	if(BL_elapsedTime >= 1000)    
+	{TickFct_BlinkLed();  
+      BL_elapsedTime = 0;
+	}
+ 	if(S_elapsedTime >= 2)    
+	{Speaker(); // Combine();
+      S_elapsedTime = 0;
+	}
+  if(TL_elapsedTime >= 300) 			  // Tick the BlinkLed synchSM
+      {TickFct_ThreeLeds();
+	TL_elapsedTime = 0;
+	}
+	 // if((TL_elapsedTime >= 300) && (BL_elapsedTime >= 1000))
+	//{	
+     // Combine();
+//	TimerPeriod = 0;
+//	}
+  //Combine();    //PORTB = tmpB;   // Tick the ThreeLeds synchSM
       while (!TimerFlag){}   // Wait for timer period
-      TimerFlag = 0;         // Lower flag raised by timer
-   }
+      TimerFlag = 0;  
+ Combine();       // Lower flag raised by timer
+   	BL_elapsedTime += timerPeriod;
+	S_elapsedTime += timerPeriod;
+      TL_elapsedTime += timerPeriod;
+	}
 }

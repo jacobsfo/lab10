@@ -101,17 +101,34 @@ void TickFct_ThreeLeds() {
 int main(void) {
 DDRB = 0xFF; PORTB = 0x00;
 //   PORTB = 0; // Init outputs
-   TimerSet(1000);
+unsigned long BL_elapsedTime = 1000;
+   unsigned long TL_elapsedTime = 300;
+   const unsigned long timerPeriod = 100; 
+     
+TimerSet(timerPeriod);
    TimerOn(); 
    BL_State = BL_SMStart;
    TL_State = TL_SMStart;
    state = Start; 
-   while (1) {          
-      TickFct_BlinkLed();    // Tick the BlinkLed synchSM
-      TickFct_ThreeLeds();
-      Combine();
+   while (1) {      
+	if(BL_elapsedTime >= 1000)    
+	{TickFct_BlinkLed();  
+      BL_elapsedTime = 0;
+	}
+   if(TL_elapsedTime >= 300) 			  // Tick the BlinkLed synchSM
+      {TickFct_ThreeLeds();
+	TL_elapsedTime = 0;
+	}
+	 // if((TL_elapsedTime >= 300) && (BL_elapsedTime >= 1000))
+	//{	
+     // Combine();
+//	TimerPeriod = 0;
+//	}
       //PORTB = tmpB;   // Tick the ThreeLeds synchSM
       while (!TimerFlag){}   // Wait for timer period
-      TimerFlag = 0;         // Lower flag raised by timer
-   }
+      TimerFlag = 0;  
+	Combine();       // Lower flag raised by timer
+   	BL_elapsedTime += timerPeriod;
+      TL_elapsedTime += timerPeriod;
+	}
 }
