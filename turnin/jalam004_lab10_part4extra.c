@@ -13,6 +13,7 @@
 #include "simAVRHeader.h"
 #endif
 unsigned char T,L,S;
+unsigned char N = 1;
 enum BL_States { BL_SMStart, LedOff, LedOn } BL_State;
 void TickFct_BlinkLed() 
 {
@@ -41,6 +42,48 @@ void TickFct_BlinkLed()
 	}
 
 }
+enum N_States { N_start, inc, dec} N_state;
+void Note() 
+{
+ unsigned char tmpA2 = ~PINA & 0x02;
+ unsigned char tmpA1 = ~PINA & 0x01;
+
+	switch(N_state)
+	{
+	case N_start: 
+	if(tmpA1)
+	N_state = inc;
+	if(tmpA2)
+	N_state = dec;
+	else{N_state = N_start;}
+	break;
+	case inc:
+	if((tmpA1))	
+	N_state = inc;
+	else{N_state = N_start;} 
+	break;
+	case dec: 
+	if((tmpA2))	
+	N_state = dec;
+	else{N_state = N_start;}
+	break;
+	}
+	switch(N_state)
+	{
+	case N_start: 
+	break;
+	case inc:
+	if(((N >= 1) && (N <= 5))) 
+	{N++;}
+	break;
+	case dec:
+	if((N >= 1) && (N <= 5)) 
+	{N--;}
+	break;
+	}
+
+}
+
 enum S_States { start, Off, On } State;
 void Speaker() 
 {
@@ -138,10 +181,10 @@ DDRB = 0xFF; PORTB = 0x00;
 DDRA = 0x00; PORTA = 0xFF;
 //   PORTB = 0; // Init outputs
 unsigned long BL_elapsedTime = 1000;
- unsigned long S_elapsedTime = 2;
+ unsigned long S_elapsedTime = N;
   unsigned long TL_elapsedTime = 300;
    //unsigned long N_elapsedTime = 1;
- const unsigned long timerPeriod = 2; 
+ const unsigned long timerPeriod = N; 
      //unsigned char tmpA = ~PINA & 0x01;
 TimerSet(timerPeriod);
    TimerOn(); 
@@ -149,13 +192,17 @@ TimerSet(timerPeriod);
    TL_State = TL_SMStart;
    state = Start; 
    State = start;
+   N_state = N_start;
    while (1) {      
 	if(BL_elapsedTime >= 1000)    
 	{TickFct_BlinkLed();  
       BL_elapsedTime = 0;
 	}
- 	if(S_elapsedTime >= 2)    
-	{Speaker(); // Combine();
+
+ 	if(S_elapsedTime >= N)    
+	{
+	Speaker(); // Combine();
+	Note();
       S_elapsedTime = 0;
 	}
   if(TL_elapsedTime >= 300) 			  // Tick the BlinkLed synchSM
