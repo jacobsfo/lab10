@@ -13,7 +13,7 @@
 #include "simAVRHeader.h"
 #endif
 unsigned char T,L,S;
-unsigned char N = 1;
+unsigned char N = 2;
 enum BL_States { BL_SMStart, LedOff, LedOn } BL_State;
 void TickFct_BlinkLed() 
 {
@@ -52,20 +52,24 @@ void Note()
 	{
 	case N_start: 
 	if(tmpA1)
+	N++;
 	N_state = inc;
-	if(tmpA2)
+	
+		if(N <= 1)
+	N = 1;
+else if(tmpA2)
 	N_state = dec;
-	else{N_state = N_start;}
+
+	else{N--;}
 	break;
 	case inc:
-	if((tmpA1))	
-	N_state = inc;
-	else{N_state = N_start;} 
+//N_state = inc;
+N_state = N_start; 
 	break;
 	case dec: 
-	if((tmpA2))	
-	N_state = dec;
-	else{N_state = N_start;}
+//	if((tmpA2))	
+//	N_state = dec;
+	N_state = N_start;
 	break;
 	}
 	switch(N_state)
@@ -73,12 +77,8 @@ void Note()
 	case N_start: 
 	break;
 	case inc:
-	if(((N >= 1) && (N <= 5))) 
-	{N++;}
 	break;
 	case dec:
-	if((N >= 1) && (N <= 5)) 
-	{N--;}
 	break;
 	}
 
@@ -202,7 +202,7 @@ TimerSet(timerPeriod);
  	if(S_elapsedTime >= N)    
 	{
 	Speaker(); // Combine();
-	Note();
+	//Note();
       S_elapsedTime = 0;
 	}
   if(TL_elapsedTime >= 300) 			  // Tick the BlinkLed synchSM
@@ -217,7 +217,8 @@ TimerSet(timerPeriod);
   //Combine();    //PORTB = tmpB;   // Tick the ThreeLeds synchSM
       while (!TimerFlag){}   // Wait for timer period
       TimerFlag = 0;  
- Combine();       // Lower flag raised by timer
+ Combine();
+//Note();       // Lower flag raised by timer
    	BL_elapsedTime += timerPeriod;
 	S_elapsedTime += timerPeriod;
       TL_elapsedTime += timerPeriod;
