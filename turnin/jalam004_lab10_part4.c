@@ -1,7 +1,7 @@
 /*	Author: lab
  *  Partner(s) Name: 
  *	Lab Section:
- *	Assignment: Lab #  Exercise #
+ *	Assignment: Lab 10  Exercise 4
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -13,6 +13,7 @@
 #include "simAVRHeader.h"
 #endif
 unsigned char T,L,S;
+unsigned long N = 2;
 enum BL_States { BL_SMStart, LedOff, LedOn } BL_State;
 void TickFct_BlinkLed() 
 {
@@ -41,13 +42,58 @@ void TickFct_BlinkLed()
 	}
 
 }
+enum N_States { N_start, inc, dec} N_state;
+void Note() 
+{
+ //unsigned char tmpA2 = ~PINA & 0x02;
+ //unsigned char tmpA1 = ~PINA & 0x01;
+
+	switch(N_state)
+	{
+	case N_start: 
+	if((~PINA & 0x01) == 0x01){
+	N_state = inc;
+	N++;
+	}
+    else if((~PINA & 0x02) == 0x02){
+	  // N_state = dec;
+       if((N - 1) < 1){N = 1;}
+	   else{N--;}
+	N_state = dec;
+    }
+	else{N_state = N_start;}
+	break;
+	
+	case inc:
+   if((~PINA & 0x01) == 0x01){N_state = inc;}
+    else{N_state = N_start;}
+	break;
+	
+	case dec:
+	if((~PINA & 0x02) == 0x02){N_state = dec;}
+	else{N_state = N_start;}
+	break;
+	
+	default:
+	    break;
+	}
+	
+	switch(N_state)
+	{
+	case N_start: 
+	break;
+	case inc:
+	break;
+	case dec:
+	break;
+	}
+
+}
+
 enum S_States { start, Off, On } State;
 void Speaker() 
 {
  unsigned char tmpA = ~PINA & 0x04;
-  unsigned char tmpA1 = ~PINA & 0x01;
-unsigned char tmpA2 = ~PINA & 0x02;
-unsigned char cnt;
 
 	switch(State)
 	{
@@ -55,33 +101,24 @@ unsigned char cnt;
 	State = Off;
 	break;
 	case Off:
-	if((tmpA1))	
-	State = On;
+	if((tmpA))	
+	{State = On;}
+	//S = 0x10;}
 	else{State = Off;}
 	break;
 	case On: 
-	if((tmpA2))
 	State = Off;
-	else{State = On;}
 	break;
 	}
-	
 	switch(State)
 	{
 	case start: 
 	break;
 	case Off: 
-	if((tmpA2) && ((cnt <= 5) && (cnt > 0))) 
-	{cnt--;
-	S = 0x10;
-	}
-	//else{S = 0x10;}	
+	S = 0;
 	break;
-	case On:
-	if((tmpA1) && ((cnt <= 5) && (cnt > 0))) 
-	{cnt++;
+	case On: 
 	S = 0x10;
-	}
 	break;
 	}
 
@@ -148,46 +185,43 @@ int main(void) {
 DDRB = 0xFF; PORTB = 0x00;
 DDRA = 0x00; PORTA = 0xFF;
 //   PORTB = 0; // Init outputs
-unsigned  long BL_elapsedTime = 1000;
- unsigned  long S_elapsedTime = 1;
+unsigned long BL_elapsedTime = 1000;
+ unsigned long S_elapsedTime = N;
   unsigned long TL_elapsedTime = 300;
-   unsigned long Note = S_elapsedTime ;
-const  unsigned long timerPeriod = 1; 
+   //unsigned long N_elapsedTime = 1;
+ const unsigned long timerPeriod = N; 
      //unsigned char tmpA = ~PINA & 0x01;
-TimerSet(timerPeriod);
+   TimerSet(timerPeriod);
    TimerOn(); 
    BL_State = BL_SMStart;
    TL_State = TL_SMStart;
    state = Start; 
    State = start;
+   N_state = N_start;
    while (1) {      
 	if(BL_elapsedTime >= 1000)    
 	{TickFct_BlinkLed();  
       BL_elapsedTime = 0;
 	}
-//each press is a ams
- 	if((S_elapsedTime >= 10))    
-	{Speaker(); // Combine();
-     	S_elapsedTime = 0;
-	
-//	timerPeriod = Note;
+
+ 	if(S_elapsedTime >= N)    
+	{
+	 Speaker(); // Combine();
+     S_elapsedTime = 0;
 	}
-  if(TL_elapsedTime >= 300) 			  // Tick the BlinkLed synchSM
-      {TickFct_ThreeLeds();
-	TL_elapsedTime = 0;
+    if(TL_elapsedTime >= 300) 			  // Tick the BlinkLed synchSM
+      {
+       TickFct_ThreeLeds();
+	   TL_elapsedTime = 0;
 	}
-	 // if((TL_elapsedTime >= 300) && (BL_elapsedTime >= 1000))
-	//{	
-     // Combine();
-//	TimerPeriod = 0;
-//	}
-  //Combine();    //PORTB = tmpB;   // Tick the ThreeLeds synchSM
-      while (!TimerFlag){}   // Wait for timer period
-      TimerFlag = 0;  
- Combine();       // Lower flag raised by timer
+//	 Note();
+	 Combine();
+	 Note();
+    while (!TimerFlag){}   // Wait for timer period
+    TimerFlag = 0;  
    	BL_elapsedTime += timerPeriod;
-	Note++;
-	S_elapsedTime = Note;
-      TL_elapsedTime += timerPeriod;
+	S_elapsedTime += timerPeriod;
+    TL_elapsedTime += timerPeriod;
 	}
 }
+

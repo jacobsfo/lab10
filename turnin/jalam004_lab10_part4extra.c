@@ -52,24 +52,27 @@ void Note()
 	{
 	case N_start: 
 	if(tmpA1)
-	N++;
+	{N++;
 	N_state = inc;
-	
-		if(N <= 1)
-	N = 1;
-else if(tmpA2)
-	N_state = dec;
+	}	
+        else if(tmpA2)
+	{N_state = dec;}
+	else if(N <= 1)
+	{N = 1;}
 
 	else{N--;}
 	break;
 	case inc:
-//N_state = inc;
-N_state = N_start; 
+	if(tmpA1)
+
+{N_state = inc;}
+else
+{N_state = N_start; }
 	break;
 	case dec: 
-//	if((tmpA2))	
-//	N_state = dec;
-	N_state = N_start;
+	if(tmpA2)
+	{N_state = dec;}
+	else{N_state = N_start;}
 	break;
 	}
 	switch(N_state)
@@ -186,6 +189,7 @@ unsigned long BL_elapsedTime = 1000;
    //unsigned long N_elapsedTime = 1;
  const unsigned long timerPeriod = N; 
      //unsigned char tmpA = ~PINA & 0x01;
+//Note();
 TimerSet(timerPeriod);
    TimerOn(); 
    BL_State = BL_SMStart;
@@ -198,6 +202,7 @@ TimerSet(timerPeriod);
 	{TickFct_BlinkLed();  
       BL_elapsedTime = 0;
 	}
+
 
  	if(S_elapsedTime >= N)    
 	{
@@ -218,9 +223,9 @@ TimerSet(timerPeriod);
       while (!TimerFlag){}   // Wait for timer period
       TimerFlag = 0;  
  Combine();
-//Note();       // Lower flag raised by timer
    	BL_elapsedTime += timerPeriod;
 	S_elapsedTime += timerPeriod;
       TL_elapsedTime += timerPeriod;
-	}
+	
+}
 }
